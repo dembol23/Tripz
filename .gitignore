@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Xcode user state (personal, causes pointless diffs)
+xcuserdata/
+*.xcuserstate
+DerivedData/
+*.xcscmblueprint
+
+# Swift Package Manager build output
+.build/
+.swiftpm/
+
+# Secrets and local config (we will use these later)
+*.local.xcconfig
+.env
