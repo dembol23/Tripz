@@ -6,6 +6,10 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		80E2C1F23074293C000B65D1 /* TripzKit in Frameworks */ = {isa = PBXBuildFile; productRef = 80E2C1F13074293C000B65D1 /* TripzKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* Tripz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tripz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -22,6 +26,7 @@
 		000000000000000130000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				80E2C1F23074293C000B65D1 /* TripzKit in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -60,6 +65,9 @@
 				000000000000000000000010 /* Tripz */,
 			);
 			name = Tripz;
+			packageProductDependencies = (
+				80E2C1F13074293C000B65D1 /* TripzKit */,
+			);
 			productName = MyApp;
 			productReference = 000000000000000000000120 /* Tripz.app */;
 			productType = "com.apple.product-type.application";
@@ -88,6 +96,9 @@
 			);
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				80E2C1F03074293C000B65D1 /* XCLocalSwiftPackageReference "Packages/TripzKit" */,
+			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
 			projectDirPath = "";
@@ -351,6 +362,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		80E2C1F03074293C000B65D1 /* XCLocalSwiftPackageReference "Packages/TripzKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/TripzKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		80E2C1F13074293C000B65D1 /* TripzKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TripzKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 000000000000000000000000 /* Project object */;
 }
