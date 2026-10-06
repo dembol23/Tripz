@@ -2,7 +2,7 @@ import Foundation
 import GRDB
 import TripzKit
 
-struct ActivityRepository: Sendable {
+public struct ActivityRepository: Sendable {
     private let writer: any DatabaseWriter
     
     public init(_ database: AppDatabase) {
