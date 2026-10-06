@@ -1,7 +1,7 @@
 import Foundation
 import TripzKit
 
-enum StorageError: Error, Equatable {
+public enum StorageError: Error, Equatable {
     case invalidRow(String)
 }
 
