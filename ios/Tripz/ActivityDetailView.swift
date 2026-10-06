@@ -36,31 +36,76 @@ struct ActivityDetailView: View {
 
 private struct ActivityDetailContent: View {
     let activity: Activity
-    
+    @State private var sheetSelection: PresentationDetent = .fraction(0.9)
+    @State private var isSheetPresented = false
+        
     var body: some View {
-        VStack(spacing: 0) {
-            mapSection
-                .frame(height: 320)
-            List {
-                LabeledContent("Date",
-                    value: activity.start.formatted(date: .abbreviated, time: .shortened))
-                LabeledContent("Distance",
-                    value: Measurement(value: activity.distanceMeters, unit: UnitLength.meters)
-                        .formatted(.measurement(width: .abbreviated, usage: .road)))
-                LabeledContent("Duration",
-                    value: Duration.seconds(activity.durationSeconds)
-                        .formatted(.units(allowed: [.hours, .minutes], width: .abbreviated)))
-                if let gain = activity.elevationGainMeters {
-                    LabeledContent("Elevation gain",
-                        value: Measurement(value: gain, unit: UnitLength.meters)
-                            .formatted(.measurement(width: .abbreviated, usage: .asProvided)))
+        mapSection
+            .ignoresSafeArea(edges: .all)
+            .sheet(isPresented: $isSheetPresented) {
+                NavigationStack {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(activity.title)
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 24)
+                            .padding(.bottom, 12)
+
+                        Text(activity.start.formatted(date: .abbreviated, time: .shortened))
+                            .font(.title3)
+                            .foregroundStyle(.gray)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 12)
+                        
+                        List {
+                            Section {
+                                LabeledContent("Distance",
+                                    value: Measurement(value: activity.distanceMeters, unit: UnitLength.meters)
+                                        .formatted(.measurement(width: .abbreviated, usage: .road)))
+                                LabeledContent("Duration",
+                                    value: Duration.seconds(activity.durationSeconds)
+                                        .formatted(.units(allowed: [.hours, .minutes], width: .abbreviated)))
+                                
+                                if let gain = activity.elevationGainMeters {
+                                    LabeledContent("Elevation gain",
+                                        value: Measurement(value: gain, unit: UnitLength.meters)
+                                            .formatted(.measurement(width: .abbreviated, usage: .asProvided)))
+                                }
+                            }
+                            
+                            if !activity.notes.isEmpty {
+                                Section("Notes") {
+                                    Text(activity.notes)
+                                }
+                            }
+                        }
+                        .listStyle(.plain)
+                    }
+                    .toolbar(.hidden, for: .navigationBar)
                 }
-                if !activity.notes.isEmpty {
-                    Text(activity.notes)
+                .presentationDetents(
+                    [.height(95), .fraction(0.35), .large],
+                    selection: $sheetSelection
+                )
+                .presentationCornerRadius(20)
+                .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.35)))
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+            }
+            .onAppear {
+                isSheetPresented = true
+            }
+            .onDisappear {
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    isSheetPresented = false
                 }
             }
-        }
-        .navigationTitle(activity.title)
     }
 
     @ViewBuilder
@@ -77,3 +122,27 @@ private struct ActivityDetailContent: View {
     }
 }
 
+#Preview("Loaded Detail") {
+    PreviewWrapper()
+}
+
+private struct PreviewWrapper: View {
+    let activity = SampleData.pilatusHike()
+    let repository = ActivityRepository(try! AppDatabase.inMemory())
+    @State private var isReady = false
+    
+    var body: some View {
+        NavigationStack {
+            if isReady {
+                ActivityDetailView(activityId: activity.id, repository: repository)
+            } else {
+                ProgressView()
+            }
+        }
+        .task {
+            // Save the sample activity to the in-memory database first
+            try? await repository.save(activity)
+            isReady = true
+        }
+    }
+}

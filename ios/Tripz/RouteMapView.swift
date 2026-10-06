@@ -28,7 +28,10 @@ struct RouteMapView: View {
         .mapControls{
             MapCompass()
             MapScaleView()
+            MapPitchToggle()
         }
+        .mapControlVisibility(.visible)
+        .safeAreaPadding(.top, 50)
     }
     
     private static func mapRect(fitting coordinates: [CLLocationCoordinate2D]) -> MKMapRect {
