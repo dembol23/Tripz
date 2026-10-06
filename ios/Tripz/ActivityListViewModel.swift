@@ -26,4 +26,16 @@ final class ActivityListViewModel {
             state = .failed(error.localizedDescription)
         }
     }
+    
+#if DEBUG
+    func addSampleActivity() async {
+        do {
+            try await repository.save(SampleData.pilatusHike())
+            await load()
+        } catch {
+            state = .failed(error.localizedDescription)
+        }
+    }
+#endif
+    
 }

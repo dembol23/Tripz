@@ -13,6 +13,13 @@ struct ActivityListView: View {
         NavigationStack {
             content
                 .navigationTitle("Activities")
+#if DEBUG
+.toolbar {
+    Button("Add sample", systemImage: "plus") {
+        Task { await viewModel.addSampleActivity() }
+    }
+}
+#endif
         }
         .task{ await viewModel.load() }
     }
