@@ -2,13 +2,13 @@ import Foundation
 
 public struct TrackPoint: Hashable, Sendable {
     public let latitude: Double
-    public let longtitude: Double
+    public let longitude: Double
     public let elevationMeters: Double?
     public let timestamp: Date?
     
-    public init(latitude: Double, longtitude: Double, elevationMeters: Double? = nil, timestamp: Date? = nil) {
+    public init(latitude: Double, longitude: Double, elevationMeters: Double? = nil, timestamp: Date? = nil) {
         self.latitude = latitude
-        self.longtitude = longtitude
+        self.longitude = longitude
         self.elevationMeters = elevationMeters
         self.timestamp = timestamp
     }
