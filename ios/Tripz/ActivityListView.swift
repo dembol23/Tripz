@@ -4,9 +4,11 @@ import TripzStorage
 
 struct ActivityListView: View {
     @State private var viewModel: ActivityListViewModel
+    private let repository: ActivityRepository
     
     init(repository: ActivityRepository) {
         _viewModel = State(initialValue: ActivityListViewModel(repository: repository))
+        self.repository = repository
     }
     
     var body: some View {
@@ -39,7 +41,11 @@ struct ActivityListView: View {
                 )
             case .loaded(let activities):
                 List(activities) { activity in
-                    ActivityRow(activity: activity)
+                    NavigationLink {
+                        ActivityDetailView(activityId: activity.id, repository: repository)
+                    } label: {
+                        ActivityRow(activity: activity)
+                    }
                 }
             }
         }
