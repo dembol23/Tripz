@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		80103700307511930065DAE3 /* TripzStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 801036FF307511930065DAE3 /* TripzStorage */; };
+		8036D28030764F3B000F8074 /* TripzHealth in Frameworks */ = {isa = PBXBuildFile; productRef = 8036D27F30764F3B000F8074 /* TripzHealth */; };
 		80E2C1F23074293C000B65D1 /* TripzKit in Frameworks */ = {isa = PBXBuildFile; productRef = 80E2C1F13074293C000B65D1 /* TripzKit */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +30,7 @@
 			files = (
 				80103700307511930065DAE3 /* TripzStorage in Frameworks */,
 				80E2C1F23074293C000B65D1 /* TripzKit in Frameworks */,
+				8036D28030764F3B000F8074 /* TripzHealth in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -70,6 +72,7 @@
 			packageProductDependencies = (
 				80E2C1F13074293C000B65D1 /* TripzKit */,
 				801036FF307511930065DAE3 /* TripzStorage */,
+				8036D27F30764F3B000F8074 /* TripzHealth */,
 			);
 			productName = MyApp;
 			productReference = 000000000000000000000120 /* Tripz.app */;
@@ -102,6 +105,7 @@
 			packageReferences = (
 				80E2C1F03074293C000B65D1 /* XCLocalSwiftPackageReference "Packages/TripzKit" */,
 				801036FE307511930065DAE3 /* XCLocalSwiftPackageReference "Packages/TripzStorage" */,
+				8036D27E30764F3B000F8074 /* XCLocalSwiftPackageReference "Packages/TripzHealth" */,
 			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
@@ -376,6 +380,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/TripzStorage;
 		};
+		8036D27E30764F3B000F8074 /* XCLocalSwiftPackageReference "Packages/TripzHealth" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/TripzHealth;
+		};
 		80E2C1F03074293C000B65D1 /* XCLocalSwiftPackageReference "Packages/TripzKit" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/TripzKit;
@@ -386,6 +394,10 @@
 		801036FF307511930065DAE3 /* TripzStorage */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TripzStorage;
+		};
+		8036D27F30764F3B000F8074 /* TripzHealth */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TripzHealth;
 		};
 		80E2C1F13074293C000B65D1 /* TripzKit */ = {
 			isa = XCSwiftPackageProductDependency;
