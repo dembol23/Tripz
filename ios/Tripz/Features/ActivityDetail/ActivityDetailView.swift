@@ -36,9 +36,24 @@ struct ActivityDetailView: View {
 
 private struct ActivityDetailContent: View {
     let activity: Activity
+    private let geometry: RouteGeometry?
+    private let elevationSamples: [ElevationSample]
+    @State private var selectedDistance: Double?
     @State private var sheetSelection: PresentationDetent = .fraction(0.9)
     @State private var isSheetPresented = false
         
+    init(activity: Activity) {
+        self.activity = activity
+        if let route = activity.route, route.points.count >= 2 {
+            let geometry = RouteGeometry(route: route)
+            self.geometry = geometry
+            self.elevationSamples = geometry.elevationSamples()
+        } else {
+            self.geometry = nil
+            self.elevationSamples = []
+        }
+    }
+    
     var body: some View {
         mapSection
             .ignoresSafeArea(edges: .all)
@@ -74,6 +89,11 @@ private struct ActivityDetailContent: View {
                                     LabeledContent("Elevation gain",
                                         value: Measurement(value: gain, unit: UnitLength.meters)
                                             .formatted(.measurement(width: .abbreviated, usage: .asProvided)))
+                                }
+                                if !elevationSamples.isEmpty {
+                                    Section {
+                                        ElevationChartView(samples: elevationSamples, selectedDistance: $selectedDistance)
+                                    }
                                 }
                             }
                             
