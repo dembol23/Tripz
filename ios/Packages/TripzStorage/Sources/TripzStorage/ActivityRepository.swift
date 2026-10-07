@@ -2,6 +2,10 @@ import Foundation
 import GRDB
 import TripzKit
 
+public enum ActivityRepositoryError: Error, Equatable {
+    case workoutAlreadyImported(workoutId: UUID)
+}
+
 public struct ActivityRepository: Sendable {
     private let writer: any DatabaseWriter
     
@@ -17,14 +21,22 @@ public struct ActivityRepository: Sendable {
             RoutePointRecord.records(for: $0, activityId: activity.id)
         } ?? []
         
-        try await writer.write { db in
-            try record.save(db)
-            try RoutePointRecord
-                .filter(Column("activityId") == record.id)
-                .deleteAll(db)
-            for point in points {
-                try point.insert(db)
+        do{
+            try await writer.write { db in
+                try record.save(db)
+                try RoutePointRecord
+                    .filter(Column("activityId") == record.id)
+                    .deleteAll(db)
+                for point in points {
+                    try point.insert(db)
+                }
             }
+        }catch let error as DatabaseError
+                    where error.extendedResultCode == .SQLITE_CONSTRAINT_UNIQUE {
+            if case .appleHealth(let workoutId) = activity.source {
+                throw ActivityRepositoryError.workoutAlreadyImported(workoutId: workoutId)
+            }
+            throw error
         }
     }
     

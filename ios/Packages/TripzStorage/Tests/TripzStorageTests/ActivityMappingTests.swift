@@ -6,8 +6,8 @@ import TripzKit
 struct ActivityMappingTests {
     private let start = Date(timeIntervalSince1970: 1_000_000)
     
-    private func makeActivity(source: ActivitySource = .manual, route: Route? = nil) -> Activity {
-        Activity(title: "Pilatus", start: start, durationSeconds: 3600, distanceMeters: 5000, elevationGainMeters: 700, notes: "Clear sky", source: source, route: route)
+    private func makeActivity(title: String = "Pilatus", source: ActivitySource = .manual, route: Route? = nil) -> Activity {
+        Activity(title: title, start: start, durationSeconds: 3600, distanceMeters: 5000, elevationGainMeters: 700, notes: "Clear sky", source: source, route: route)
     }
     
     @Test func manualActivitySurvivesRecordRoundTrip() throws {
