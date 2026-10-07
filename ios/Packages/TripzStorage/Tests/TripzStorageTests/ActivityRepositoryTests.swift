@@ -162,4 +162,26 @@ struct ActivityRepositoryTests {
         let stored = try await repository.activities()
         #expect(stored.count == 2)
     }
+    
+    @Test func updatingDetailsChangesOnlyTitleAndNotes() async throws {
+        let (repository, _) = try makeRepository()
+        let activity = makeActivity(source: .appleHealth(workoutId: UUID()), route: route)
+        try await repository.save(activity)
+
+        try await repository.updateDetails(id: activity.id, title: "Renamed", notes: "Windy")
+
+        var expected = activity
+        expected.title = "Renamed"
+        expected.notes = "Windy"
+        let fetched = try await repository.activity(id: activity.id)
+        #expect(fetched == expected)
+    }
+
+    @Test func updatingAnUnknownActivityThrows() async throws {
+        let (repository, _) = try makeRepository()
+        let id = UUID()
+        await #expect(throws: ActivityRepositoryError.activityNotFound(id: id)) {
+            try await repository.updateDetails(id: id, title: "x", notes: "")
+        }
+    }
 }

@@ -4,6 +4,7 @@ import TripzKit
 
 public enum ActivityRepositoryError: Error, Equatable {
     case workoutAlreadyImported(workoutId: UUID)
+    case activityNotFound(id: UUID)
 }
 
 public struct ActivityRepository: Sendable {
@@ -69,6 +70,19 @@ public struct ActivityRepository: Sendable {
         try await writer.write { db in
             _ = try ActivityRecord.deleteOne(db, key: id.uuidString)
         }
+    }
+    
+    /// Changes only the title and notes. Route points are not touched, so editing
+    /// a long hike does not rewrite thousands of rows.
+    public func updateDetails(id: UUID, title: String, notes: String) async throws {
+        let changed = try await writer.write { db -> Int in
+            try db.execute(
+                sql: "UPDATE activity SET title = ?, notes = ? WHERE id = ?",
+                arguments: [title, notes, id.uuidString]
+            )
+            return db.changesCount
+        }
+        guard changed > 0 else { throw ActivityRepositoryError.activityNotFound(id: id) }
     }
     
     private static func makeActivity(
