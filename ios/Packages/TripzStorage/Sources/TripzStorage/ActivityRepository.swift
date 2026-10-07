@@ -87,4 +87,29 @@ public struct ActivityRepository: Sendable {
         return try record.makeActivity(route: route)
     }
     
+    public func healthImports() async throws -> [UUID: HealthImportState] {
+        try await writer.read { db in
+            let rows = try Row.fetchAll(db, sql: """
+                SELECT a.id, a.healthWorkoutId,
+                       EXISTS (SELECT 1 FROM routePoint r WHERE r.activityId = a.id) AS hasRoute
+                FROM activity a
+                WHERE a.healthWorkoutId IS NOT NULL
+                """)
+            var result: [UUID: HealthImportState] = [:]
+            for row in rows {
+                guard let activityId = UUID(uuidString: row["id"]),
+                      let workoutId = UUID(uuidString: row["healthWorkoutId"]) else {
+                    throw StorageError.invalidRow("Apple Health activity with a malformed id")
+                }
+                result[workoutId] = HealthImportState(activityId: activityId, hasRoute: row["hasRoute"])
+            }
+            return result
+        }
+    }
+    
+}
+
+public struct HealthImportState: Equatable, Sendable {
+    public let activityId: UUID
+    public let hasRoute: Bool
 }

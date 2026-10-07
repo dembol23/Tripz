@@ -15,9 +15,17 @@ struct ActivityRepositoryTests {
     private func makeActivity(
         title: String = "Pilatus",
         start: Date? = nil,
+        source: ActivitySource = .manual,
         route: Route? = nil
     ) -> Activity {
-        Activity(title: title, start: start ?? self.start, durationSeconds: 3600, distanceMeters: 5000, route: route)
+        Activity(
+            title: title,
+            start: start ?? self.start,
+            durationSeconds: 3600,
+            distanceMeters: 5000,
+            source: source,
+            route: route
+        )
     }
     
     private let route = Route(points: [
@@ -99,5 +107,59 @@ struct ActivityRepositoryTests {
         }
         #expect(fetched == nil)
         #expect(remainingPoints == 0)
+    }
+    
+    @Test func healthImportsReportEachWorkoutWithItsRouteState() async throws {
+        let (repository, _) = try makeRepository()
+        let routeWorkout = UUID()
+        let plainWorkout = UUID()
+        let withRoute = makeActivity(source: .appleHealth(workoutId: routeWorkout), route: route)
+        let withoutRoute = makeActivity(source: .appleHealth(workoutId: plainWorkout))
+        try await repository.save(withRoute)
+        try await repository.save(withoutRoute)
+        try await repository.save(makeActivity(route: route))   // manual: must not appear
+
+        let imports = try await repository.healthImports()
+
+        #expect(imports.count == 2)
+        #expect(imports[routeWorkout] == HealthImportState(activityId: withRoute.id, hasRoute: true))
+        #expect(imports[plainWorkout] == HealthImportState(activityId: withoutRoute.id, hasRoute: false))
+    }
+    
+    @Test func importingSameWorkoutTwiceThrowsTypedError() async throws {
+        let (repository, _) = try makeRepository()
+        let workoutId = UUID()
+        let first = makeActivity(source: .appleHealth(workoutId: workoutId))
+        let second = makeActivity(source: .appleHealth(workoutId: workoutId))
+
+        try await repository.save(first)
+
+        await #expect(throws: ActivityRepositoryError.workoutAlreadyImported(workoutId: workoutId)) {
+            try await repository.save(second)
+        }
+
+        let stored = try await repository.activities()
+        #expect(stored.map(\.id) == [first.id])
+    }
+
+    @Test func resavingTheSameHealthActivityIsAnUpdate() async throws {
+        let (repository, _) = try makeRepository()
+        var activity = makeActivity(source: .appleHealth(workoutId: UUID()))
+        try await repository.save(activity)
+
+        activity.title = "Edited"
+        try await repository.save(activity)
+
+        let stored = try await repository.activities()
+        #expect(stored.count == 1)
+        #expect(stored.first?.title == "Edited")
+    }
+
+    @Test func differentWorkoutsAreBothStored() async throws {
+        let (repository, _) = try makeRepository()
+        try await repository.save(makeActivity(source: .appleHealth(workoutId: UUID())))
+        try await repository.save(makeActivity(source: .appleHealth(workoutId: UUID())))
+        let stored = try await repository.activities()
+        #expect(stored.count == 2)
     }
 }
