@@ -4,6 +4,7 @@ import TripzStorage
 
 struct ActivityDetailView: View {
     @State private var viewModel: ActivityDetailViewModel
+    @Environment(\.dismiss) private var dismiss
     
     init(activityId: UUID, repository: ActivityRepository) {
         _viewModel = State(initialValue: ActivityDetailViewModel(id: activityId, repository: repository))
@@ -13,6 +14,9 @@ struct ActivityDetailView: View {
         content
             .navigationBarTitleDisplayMode(.inline)
             .task { await viewModel.load() }
+            .onChange(of: viewModel.isDeleted) { _, isDeleted in
+                if isDeleted { dismiss() }
+            }
     }
     
     @ViewBuilder
@@ -20,6 +24,8 @@ struct ActivityDetailView: View {
         switch viewModel.state {
         case .loading:
             ProgressView()
+        case .deleted:
+            Color.clear
         case .notFound:
             ContentUnavailableView("Activity not found", systemImage: "questionmark.folder")
         case .failed(let message):
@@ -29,22 +35,25 @@ struct ActivityDetailView: View {
                 description: Text(message)
             )
         case .loaded(let activity):
-            ActivityDetailContent(activity: activity)
+            ActivityDetailContent(activity: activity, viewModel: viewModel)
         }
     }
 }
 
 private struct ActivityDetailContent: View {
     let activity: Activity
+    let viewModel: ActivityDetailViewModel
     private let mapModel: RouteMapModel?
     private let geometry: RouteGeometry?
     private let elevationSamples: [ElevationSample]
     @State private var selectedDistance: Double?
     @State private var sheetSelection: PresentationDetent = .fraction(0.9)
     @State private var isSheetPresented = false
+    @State private var isEditing = false
         
-    init(activity: Activity) {
+    init(activity: Activity, viewModel: ActivityDetailViewModel) {
         self.activity = activity
+        self.viewModel = viewModel
         if let route = activity.route, route.points.count >= 2 {
             let geometry = RouteGeometry(route: route)
             self.geometry = geometry
@@ -98,16 +107,20 @@ private struct ActivityDetailContent: View {
                                     }
                                 }
                             }
-                            
                             if !activity.notes.isEmpty {
                                 Section("Notes") {
                                     Text(activity.notes)
                                 }
                             }
+                            Button("Edit", systemImage: "pencil") { isEditing = true }
+
                         }
                         .listStyle(.plain)
                     }
                     .toolbar(.hidden, for: .navigationBar)
+                }
+                .sheet(isPresented: $isEditing) {
+                    ActivityEditorView(activity: activity, viewModel: viewModel)
                 }
                 .presentationDetents(
                     [.height(95), .fraction(0.35), .large],
