@@ -18,10 +18,12 @@ final class ActivityListViewModel {
     init(repository: ActivityRepository) {
         self.repository = repository
     }
-
-    func load() async {
+    
+    func observe() async {
         do {
-            state = .loaded(try await repository.activities())
+            for try await activities in repository.activityUpdates() {
+                state = .loaded(activities)
+            }
         } catch {
             state = .failed(error.localizedDescription)
         }
@@ -31,7 +33,6 @@ final class ActivityListViewModel {
     func addSampleActivity() async {
         do {
             try await repository.save(SampleData.pilatusHike())
-            await load()
         } catch {
             state = .failed(error.localizedDescription)
         }

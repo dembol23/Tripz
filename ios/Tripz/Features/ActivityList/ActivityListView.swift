@@ -33,11 +33,11 @@ struct ActivityListView: View {
                     }
                 }
                 .sheet(isPresented: $isShowingImport) {
-                    HealthImportView(importer: importer){ await viewModel.load() }
+                    HealthImportView(importer: importer){ await viewModel.observe() }
                 }
 
         }
-        .task{ await viewModel.load() }
+        .task{ await viewModel.observe() }
     }
     
     @ViewBuilder
