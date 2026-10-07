@@ -65,4 +65,21 @@ struct ActivityMappingTests {
             }
         }
     }
+    
+    @Test func updatesStreamTheListAndFollowChanges() async throws {
+        let (repository, _) = try makeRepository()
+        var updates = repository.activityUpdates().makeAsyncIterator()
+
+        let initial = try await updates.next()
+        #expect(initial == [])
+
+        let activity = makeActivity()
+        try await repository.save(activity)
+        let afterSave = try await updates.next()
+        #expect(afterSave?.map(\.id) == [activity.id])
+
+        try await repository.delete(id: activity.id)
+        let afterDelete = try await updates.next()
+        #expect(afterDelete == [])
+    }
 }

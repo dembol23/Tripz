@@ -85,6 +85,15 @@ public struct ActivityRepository: Sendable {
         guard changed > 0 else { throw ActivityRepositoryError.activityNotFound(id: id) }
     }
     
+    public func activityUpdates() -> some AsyncSequence<[Activity], any Error> {
+        ValueObservation
+            .tracking { db in
+                try ActivityRecord.order(Column("start").desc).fetchAll(db)
+                    .map { try $0.makeActivity(route: nil) }
+            }
+            .values(in: writer)
+    }
+    
     private static func makeActivity(
         from record: ActivityRecord,
         includingRoute: Bool,
