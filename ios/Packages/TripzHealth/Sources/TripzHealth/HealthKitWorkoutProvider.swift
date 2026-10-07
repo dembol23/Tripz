@@ -1,5 +1,7 @@
 import Foundation
 import HealthKit
+import CoreLocation
+import TripzKit
 
 public enum HealthAccessError: Error, LocalizedError {
     case unavailable
@@ -19,7 +21,11 @@ public struct HealthKitWorkoutProvider: WorkoutProvider {
         let store = HKHealthStore()
         try await store.requestAuthorization(
             toShare: [],
-            read: [HKObjectType.workoutType(), HKQuantityType(.distanceWalkingRunning)]
+            read: [
+                HKObjectType.workoutType(),
+                HKQuantityType(.distanceWalkingRunning),
+                HKSeriesType.workoutRoute()
+            ]
         )
     }
 
@@ -47,6 +53,40 @@ public struct HealthKitWorkoutProvider: WorkoutProvider {
             durationSeconds: workout.duration,
             distanceMeters: distance,
             elevationGainMeters: elevationGain
+        )
+    }
+    
+    public func route(forWorkout id: UUID) async throws -> [TrackPoint] {
+        let store = HKHealthStore()
+        
+        let workoutQuery = HKSampleQueryDescriptor(
+            predicates: [.workout(HKQuery.predicateForObject(with: id))],
+            sortDescriptors: [],
+            limit: 1
+        )
+        guard let workout = try await workoutQuery.result(for: store).first else { return [] }
+        
+        let routeQuery = HKSampleQueryDescriptor(
+            predicates: [.workoutRoute(HKQuery.predicateForObjects(from: workout))],
+            sortDescriptors: [SortDescriptor(\.startDate)]
+        )
+        
+        var points: [TrackPoint] = []
+        for route in try await routeQuery.result(for: store) {
+            for try await location in HKWorkoutRouteQueryDescriptor(route).results(for: store) {
+                guard location.horizontalAccuracy >= 0 else { continue }
+                points.append(Self.makePoint(location))
+            }
+        }
+        return points
+    }
+    
+    private static func makePoint(_ location: CLLocation) -> TrackPoint {
+        TrackPoint(
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude,
+            elevationMeters: location.verticalAccuracy >= 0 ? location.altitude : nil,
+            timestamp: location.timestamp
         )
     }
 }
