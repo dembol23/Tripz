@@ -36,6 +36,7 @@ struct ActivityDetailView: View {
 
 private struct ActivityDetailContent: View {
     let activity: Activity
+    private let mapModel: RouteMapModel?
     private let geometry: RouteGeometry?
     private let elevationSamples: [ElevationSample]
     @State private var selectedDistance: Double?
@@ -48,9 +49,11 @@ private struct ActivityDetailContent: View {
             let geometry = RouteGeometry(route: route)
             self.geometry = geometry
             self.elevationSamples = geometry.elevationSamples()
+            self.mapModel = RouteMapModel(points: geometry.points)
         } else {
             self.geometry = nil
             self.elevationSamples = []
+            self.mapModel = nil
         }
     }
     
@@ -130,15 +133,18 @@ private struct ActivityDetailContent: View {
 
     @ViewBuilder
     private var mapSection: some View {
-        if let route = activity.route, route.points.count >= 2 {
-            RouteMapView(route: route)
+        if let mapModel {
+            RouteMapView(model: mapModel, highlight: highlightedCoordinate)
         } else {
-            ContentUnavailableView(
-                "No route",
-                systemImage: "map",
-                description: Text("This activity has no recorded route.")
-            )
+            ContentUnavailableView("No route", systemImage: "map",
+                description: Text("This activity has no recorded route."))
         }
+    }
+    
+    private var highlightedCoordinate: CLLocationCoordinate2D? {
+        guard let selectedDistance,
+              let point = geometry?.point(atDistance: selectedDistance) else { return nil }
+        return CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)
     }
 }
 
