@@ -44,4 +44,34 @@ struct RouteGeometryTests {
         ]))
         #expect(geometry.point(atDistance: 1) != nil)
     }
+    
+    @Test func samplesSkipPointsWithoutElevationButKeepTheirDistance() {
+        let geometry = RouteGeometry(route: Route(points: [
+            TrackPoint(latitude: 0, longitude: 0, elevationMeters: 10),
+            TrackPoint(latitude: 0, longitude: 1),                      // no elevation
+            TrackPoint(latitude: 0, longitude: 2, elevationMeters: 30),
+        ]))
+        let samples = geometry.elevationSamples()
+        #expect(samples.count == 2)
+        #expect(samples.last?.distanceMeters == geometry.totalDistanceMeters)
+    }
+
+    @Test func tooFewElevationsProduceNoSamples() {
+        let geometry = RouteGeometry(route: Route(points: [
+            TrackPoint(latitude: 0, longitude: 0, elevationMeters: 10),
+            TrackPoint(latitude: 0, longitude: 1),
+        ]))
+        #expect(geometry.elevationSamples().isEmpty)
+    }
+
+    @Test func longRoutesAreThinnedButKeepBothEnds() {
+        let points = (0..<1000).map {
+            TrackPoint(latitude: 0, longitude: Double($0) * 0.0001, elevationMeters: Double($0))
+        }
+        let all = RouteGeometry(route: Route(points: points)).elevationSamples(maximumCount: 1000)
+        let thinned = RouteGeometry(route: Route(points: points)).elevationSamples(maximumCount: 300)
+        #expect(thinned.count == 300)
+        #expect(thinned.first == all.first)
+        #expect(thinned.last == all.last)
+    }
 }

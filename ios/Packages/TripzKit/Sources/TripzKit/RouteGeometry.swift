@@ -49,3 +49,23 @@ public struct RouteGeometry: Sendable {
         return TrackPoint(latitude: lerp(a.latitude, b.latitude), longitude: lerp(a.longitude, b.longitude), elevationMeters: elevation)
     }
 }
+
+public struct ElevationSample: Hashable, Sendable {
+    public let distanceMeters: Double
+    public let elevationMeters: Double
+}
+
+extension RouteGeometry {
+    public func elevationSamples(maximumCount: Int = 300) -> [ElevationSample] {
+        let all = zip(points, cumulativeDistances).compactMap{point, distance in
+            point.elevationMeters.map {
+                ElevationSample(distanceMeters: distance, elevationMeters: $0)
+            }
+        }
+        guard all.count >= 2 else { return [] }
+        guard maximumCount >= 2, all.count > maximumCount else { return all }
+        
+        let step = Double(all.count - 1) / Double(maximumCount - 1)
+        return (0..<maximumCount).map { all[Int((Double($0) * step).rounded())] }
+    }
+}
