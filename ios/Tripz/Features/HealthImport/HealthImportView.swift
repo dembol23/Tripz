@@ -62,13 +62,13 @@ struct HealthImportView: View {
             // iOS hides whether read access was denied, so an empty result is ambiguous.
             return "No hikes found. If you expected some, check Tripz's access in the Health app (profile picture → Apps → Tripz)."
         }
-        var lines = ["Imported \(summary.imported) hike(s)."]
-        if summary.alreadyImported > 0 {
-            lines.append("\(summary.alreadyImported) already in Tripz.")
-        }
+        var lines: [String] = []
+        if summary.imported > 0 {lines.append("Imported \(summary.imported) hike(s).")}
+        if summary.routesAdded > 0 { lines.append("Added routes to \(summary.routesAdded) hike(s).") }
         if summary.skippedWithoutDistance > 0 {
             lines.append("\(summary.skippedWithoutDistance) skipped: no distance recorded.")
         }
+        if lines.isEmpty { lines.append("Everything is already up to date.") }
         return lines.joined(separator: "\n")
     }
 }

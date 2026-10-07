@@ -9,7 +9,11 @@ struct RouteMapView: View {
     var body: some View {
         Map(initialPosition: model.initialPosition) {
             MapPolyline(coordinates: model.coordinates)
-                .stroke(.blue, lineWidth: 4)
+                .stroke(.blue, style: StrokeStyle(
+                    lineWidth: 4,
+                    lineCap: .round,
+                    lineJoin: .round
+                ))
             if let first = model.coordinates.first {
                 Marker("Start", coordinate: first).tint(.green)
             }
