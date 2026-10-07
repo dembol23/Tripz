@@ -1,27 +1,41 @@
 import SwiftUI
 import TripzKit
 import TripzStorage
+import TripzHealth
 
 struct ActivityListView: View {
     @State private var viewModel: ActivityListViewModel
     private let repository: ActivityRepository
+    private let importer: HealthImporter
+    @State private var isShowingImport = false
     
-    init(repository: ActivityRepository) {
+    init(repository: ActivityRepository, importer: HealthImporter) {
         _viewModel = State(initialValue: ActivityListViewModel(repository: repository))
         self.repository = repository
+        self.importer = importer
+        _viewModel = State(initialValue: ActivityListViewModel(repository: repository))
     }
     
     var body: some View {
         NavigationStack {
             content
                 .navigationTitle("Activities")
-#if DEBUG
-.toolbar {
-    Button("Add sample", systemImage: "plus") {
-        Task { await viewModel.addSampleActivity() }
-    }
-}
-#endif
+                .toolbar {
+//                #if DEBUG
+//                    Button("Add sample", systemImage: "plus") {
+//                        Task { await viewModel.addSampleActivity() }
+//                    }
+//                #endif
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Import from Health", systemImage: "heart.text.square") {
+                            isShowingImport = true
+                        }
+                    }
+                }
+                .sheet(isPresented: $isShowingImport) {
+                    HealthImportView(importer: importer){ await viewModel.load() }
+                }
+
         }
         .task{ await viewModel.load() }
     }
@@ -62,15 +76,14 @@ private struct ActivityRow: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             Text(
-                Measurement(value: activity.distanceMeters, unit: UnitLength.meters)
-                    .formatted(.measurement(width: .abbreviated, usage: .road))
+                Formatting.distance(meters: activity.distanceMeters)
             )
             .font(.subheadline)
         }
     }
 }
 
-#Preview("Empty") {
-    // try! is acceptable in previews only: a crash here just means a broken preview.
-    ActivityListView(repository: ActivityRepository(try! AppDatabase.inMemory()))
-}
+//#Preview("Empty") {
+//    // try! is acceptable in previews only: a crash here just means a broken preview.
+//    ActivityListView(repository: ActivityRepository(try! AppDatabase.inMemory()))
+//}

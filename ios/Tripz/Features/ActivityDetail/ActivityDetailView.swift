@@ -90,8 +90,7 @@ private struct ActivityDetailContent: View {
                                 
                                 if let gain = activity.elevationGainMeters {
                                     LabeledContent("Elevation gain",
-                                        value: Measurement(value: gain, unit: UnitLength.meters)
-                                            .formatted(.measurement(width: .abbreviated, usage: .asProvided)))
+                                        value: Formatting.elevation(meters: gain))
                                 }
                                 if !elevationSamples.isEmpty {
                                     Section {

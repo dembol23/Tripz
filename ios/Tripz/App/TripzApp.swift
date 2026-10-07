@@ -1,5 +1,6 @@
 import SwiftUI
 import TripzStorage
+import TripzHealth
 
 @main struct TripzApp: App {
     private enum Startup {
@@ -24,7 +25,10 @@ import TripzStorage
         WindowGroup {
             switch startup {
             case .ready(let repository):
-                ActivityListView(repository: repository)
+                ActivityListView(
+                    repository: repository,
+                    importer: HealthImporter(provider: HealthKitWorkoutProvider(), repository: repository)
+                )
             case .failed(let message):
                 ContentUnavailableView(
                     "Tripz can't start",
