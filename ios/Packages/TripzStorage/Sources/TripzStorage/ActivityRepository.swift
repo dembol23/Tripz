@@ -7,6 +7,12 @@ public enum ActivityRepositoryError: Error, Equatable {
     case activityNotFound(id: UUID)
 }
 
+public struct ActivitySummary: Identifiable, Equatable, Sendable {
+    public let activity: Activity
+    public let hasRoute: Bool
+    public var id: UUID { activity.id }
+}
+
 public struct ActivityRepository: Sendable {
     private let writer: any DatabaseWriter
     
@@ -85,11 +91,19 @@ public struct ActivityRepository: Sendable {
         guard changed > 0 else { throw ActivityRepositoryError.activityNotFound(id: id) }
     }
     
-    public func activityUpdates() -> some AsyncSequence<[Activity], any Error> {
+    public func activityUpdates() -> some AsyncSequence<[ActivitySummary], any Error> {
         ValueObservation
-            .tracking { db in
-                try ActivityRecord.order(Column("start").desc).fetchAll(db)
-                    .map { try $0.makeActivity(route: nil) }
+            .tracking { db -> [ActivitySummary] in
+                let rows = try Row.fetchAll(db, sql: """
+                SELECT a.*,
+                       EXISTS (SELECT 1 FROM routePoint r WHERE r.activityId = a.id) AS hasRoute
+                FROM activity a
+                ORDER BY a.start DESC
+                """)
+                return try rows.map { row in
+                    let record = try ActivityRecord(row: row)
+                    return ActivitySummary(activity: try record.makeActivity(route: nil), hasRoute: row["hasRoute"])
+                }
             }
             .values(in: writer)
     }

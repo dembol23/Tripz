@@ -199,4 +199,37 @@ struct ActivityRepositoryTests {
         #expect(none == nil)
         #expect(unknown == nil)
     }
+    
+    @Test func updatesStreamTheListAndFollowChanges() async throws {
+        let (repository, _) = try makeRepository()
+        var updates = repository.activityUpdates().makeAsyncIterator()
+
+        let initial = try await updates.next()
+        #expect(initial?.isEmpty == true)
+
+        let activity = makeActivity()
+        try await repository.save(activity)
+        let afterSave = try await updates.next()
+        #expect(afterSave?.map(\.id) == [activity.id])
+
+        try await repository.delete(id: activity.id)
+        let afterDelete = try await updates.next()
+        #expect(afterDelete?.isEmpty == true)
+    }
+
+    @Test func updatesReportWhenAnActivityGainsARoute() async throws {
+        let (repository, _) = try makeRepository()
+        let activity = makeActivity()
+        try await repository.save(activity)
+
+        var updates = repository.activityUpdates().makeAsyncIterator()
+        let before = try await updates.next()
+        #expect(before?.first?.hasRoute == false)
+
+        var withRoute = activity
+        withRoute.route = route
+        try await repository.save(withRoute)
+        let after = try await updates.next()
+        #expect(after?.first?.hasRoute == true)
+    }
 }
