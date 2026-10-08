@@ -184,4 +184,19 @@ struct ActivityRepositoryTests {
             try await repository.updateDetails(id: id, title: "x", notes: "")
         }
     }
+
+    @Test func aRouteCanBeFetchedOnItsOwn() async throws {
+        let (repository, _) = try makeRepository()
+        let withRoute = makeActivity(route: route)
+        let without = makeActivity()
+        try await repository.save(withRoute)
+        try await repository.save(without)
+
+        let fetched = try await repository.route(forActivity: withRoute.id)
+        let none = try await repository.route(forActivity: without.id)
+        let unknown = try await repository.route(forActivity: UUID())
+        #expect(fetched == route)
+        #expect(none == nil)
+        #expect(unknown == nil)
+    }
 }

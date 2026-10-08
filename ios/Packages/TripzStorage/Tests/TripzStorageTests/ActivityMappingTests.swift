@@ -1,4 +1,5 @@
 import Foundation
+import GRDB
 import Testing
 import TripzKit
 @testable import TripzStorage
@@ -8,6 +9,11 @@ struct ActivityMappingTests {
     
     private func makeActivity(title: String = "Pilatus", source: ActivitySource = .manual, route: Route? = nil) -> Activity {
         Activity(title: title, start: start, durationSeconds: 3600, distanceMeters: 5000, elevationGainMeters: 700, notes: "Clear sky", source: source, route: route)
+    }
+    
+    private func makeRepository() throws -> (repository: ActivityRepository, database:AppDatabase) {
+        let database = try AppDatabase(DatabaseQueue())
+        return (ActivityRepository(database), database)
     }
     
     @Test func manualActivitySurvivesRecordRoundTrip() throws {

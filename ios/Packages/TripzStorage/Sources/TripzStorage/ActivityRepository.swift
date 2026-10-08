@@ -94,6 +94,14 @@ public struct ActivityRepository: Sendable {
             .values(in: writer)
     }
     
+    private static func fetchRoute(activityId: String, in db: Database) throws -> Route? {
+        let points = try RoutePointRecord
+            .filter(Column("activityId") == activityId)
+            .order(Column("position"))
+            .fetchAll(db)
+        return points.isEmpty ? nil : Route(points: points.map(\.trackPoint))
+    }
+    
     private static func makeActivity(
         from record: ActivityRecord,
         includingRoute: Bool,
@@ -101,13 +109,15 @@ public struct ActivityRepository: Sendable {
     ) throws -> Activity {
         var route: Route?
         if includingRoute {
-            let points = try RoutePointRecord
-                .filter(Column("activityId") == record.id)
-                .order(Column("position"))
-                .fetchAll(db)
-            route = points.isEmpty ? nil : Route(points: points.map(\.trackPoint))
+            route = try fetchRoute(activityId: record.id, in: db)
         }
         return try record.makeActivity(route: route)
+    }
+    
+    public func route(forActivity id: UUID) async throws -> Route? {
+        try await writer.read { db in
+            try Self.fetchRoute(activityId: id.uuidString, in: db)
+        }
     }
     
     public func healthImports() async throws -> [UUID: HealthImportState] {
