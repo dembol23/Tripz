@@ -5,8 +5,8 @@ struct HealthImportView: View {
     @State private var viewModel: HealthImportViewModel
     @Environment(\.dismiss) private var dismiss
     
-    init(importer: HealthImporter, onImported: @escaping @MainActor () async -> Void) {
-        _viewModel = State(initialValue: HealthImportViewModel(importer: importer, onImported: onImported))
+    init(importer: HealthImporter) {
+        _viewModel = State(initialValue: HealthImportViewModel(importer: importer))
     }
     
     var body: some View {

@@ -1,41 +1,23 @@
 import SwiftUI
-import TripzStorage
-import TripzHealth
 
-@main struct TripzApp: App {
-    private enum Startup {
-        case ready(ActivityRepository, RoutePreviewStore)
-        case failed(String)
-    }
-    
-    private let startup: Startup
-    
+@main
+struct TripzApp: App {
+    private let dependencies: Result<AppDependencies, any Error>
+
     init() {
-        do {
-            let url = URL.applicationSupportDirectory
-                .appending(path: "Tripz", directoryHint: .isDirectory)
-                .appending(path: "tripz.sqlite")
-            let repository = ActivityRepository(try AppDatabase.onDisk(at: url))
-            startup = .ready(repository, RoutePreviewStore(repository: repository))
-        } catch {
-            startup = .failed(error.localizedDescription)
-        }
+        dependencies = Result { try AppDependencies.live() }
     }
 
     var body: some Scene {
         WindowGroup {
-            switch startup {
-            case .ready(let repository, let previews):
-                ActivityListView(
-                    repository: repository,
-                    importer: HealthImporter(provider: HealthKitWorkoutProvider(), repository: repository),
-                    previews: previews
-                )
-            case .failed(let message):
+            switch dependencies {
+            case .success(let dependencies):
+                MainTabView(dependencies: dependencies)
+            case .failure(let error):
                 ContentUnavailableView(
                     "Tripz can't start",
                     systemImage: "exclamationmark.triangle",
-                    description: Text(message)
+                    description: Text(error.localizedDescription)
                 )
             }
         }
