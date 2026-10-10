@@ -8,7 +8,7 @@ import Foundation
 final class ActivityListViewModel {
     enum State {
         case loading
-        case loaded([Activity])
+        case loaded([ActivitySummary])
         case failed(String)
     }
 

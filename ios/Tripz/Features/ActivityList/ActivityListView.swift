@@ -8,11 +8,12 @@ struct ActivityListView: View {
     private let repository: ActivityRepository
     private let importer: HealthImporter
     @State private var isShowingImport = false
+    private let previews: RoutePreviewStore
     
-    init(repository: ActivityRepository, importer: HealthImporter) {
-        _viewModel = State(initialValue: ActivityListViewModel(repository: repository))
+    init(repository: ActivityRepository, importer: HealthImporter, previews: RoutePreviewStore) {
         self.repository = repository
         self.importer = importer
+        self.previews = previews
         _viewModel = State(initialValue: ActivityListViewModel(repository: repository))
     }
     
@@ -53,14 +54,22 @@ struct ActivityListView: View {
                     systemImage: "figure.hiking",
                     description: Text("Add a hike manually or import one from Apple Health.")
                 )
-            case .loaded(let activities):
-                List(activities) { activity in
-                    NavigationLink {
-                        ActivityDetailView(activityId: activity.id, repository: repository)
-                    } label: {
-                        ActivityRow(activity: activity)
+            case .loaded(let summaries):
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(summaries) { summary in
+                            NavigationLink {
+                                ActivityDetailView(activityId: summary.id, repository: repository)
+                            } label: {
+                                ActivityCardView(summary: summary, previews: previews)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
                 }
+                .background(Color(.systemGroupedBackground))
             }
         }
 }

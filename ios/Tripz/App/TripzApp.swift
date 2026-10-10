@@ -4,7 +4,7 @@ import TripzHealth
 
 @main struct TripzApp: App {
     private enum Startup {
-        case ready(ActivityRepository)
+        case ready(ActivityRepository, RoutePreviewStore)
         case failed(String)
     }
     
@@ -15,7 +15,8 @@ import TripzHealth
             let url = URL.applicationSupportDirectory
                 .appending(path: "Tripz", directoryHint: .isDirectory)
                 .appending(path: "tripz.sqlite")
-            startup = .ready(ActivityRepository(try AppDatabase.onDisk(at: url)))
+            let repository = ActivityRepository(try AppDatabase.onDisk(at: url))
+            startup = .ready(repository, RoutePreviewStore(repository: repository))
         } catch {
             startup = .failed(error.localizedDescription)
         }
@@ -24,10 +25,11 @@ import TripzHealth
     var body: some Scene {
         WindowGroup {
             switch startup {
-            case .ready(let repository):
+            case .ready(let repository, let previews):
                 ActivityListView(
                     repository: repository,
-                    importer: HealthImporter(provider: HealthKitWorkoutProvider(), repository: repository)
+                    importer: HealthImporter(provider: HealthKitWorkoutProvider(), repository: repository),
+                    previews: previews
                 )
             case .failed(let message):
                 ContentUnavailableView(

@@ -13,7 +13,7 @@ public enum RouteSimplifier {
         
         var keep = [Bool](repeating: false, count: points.count)
         keep[0] = true
-        keep[-1] = true
+        keep[points.count - 1] = true
         
         var pending = [(first: 0, last: points.count - 1)]
         while let (first, last) = pending.popLast() {
