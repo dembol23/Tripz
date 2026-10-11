@@ -5,7 +5,22 @@ import TripzStorage
 
 struct PassportView: View {
     let dependencies: AppDependencies
-
+    
+    // CUSTOMIZATION
+    @State private var isShowingCustomization = false
+    @State private var highlightColor = Color.blue
+    @State private var isSatellite = false
+    @State private var isGlobe = true
+    private var activeMapStyle: MapStyle {
+        let elevation: MapStyle.Elevation = isGlobe ? .realistic : .flat
+        if isSatellite {
+            return .imagery(elevation: elevation)
+        } else {
+            return .standard(elevation: elevation, emphasis: .muted, pointsOfInterest: .excludingAll)
+        }
+    }
+    
+    
     @State private var position = MapCameraPosition.camera(
         MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: 30, longitude: 10), distance: 25_000_000)
     )
@@ -30,8 +45,46 @@ struct PassportView: View {
                     .frame(height: 340)
                 visitedList
             }
-            .navigationTitle("Passport")
-            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Customize", systemImage: "slider.horizontal.3"){
+                        isShowingCustomization.toggle()
+                    }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Add visit", systemImage: "plus"){}
+                }
+            }
+            .sheet(isPresented: $isShowingCustomization) {
+                VStack(spacing: 24) {
+                    Text("Map Settings")
+                        .font(.headline)
+                        .padding(.top, 12)
+                    VStack(spacing: 16) {
+                        ColorPicker("Highlight color", selection: $highlightColor)
+                                .padding()
+                                .presentationDetents([.height(120)]) // Adjust this value if needed
+                                .presentationDragIndicator(.visible) // Adds the little drag handle at the top
+                        
+                        Picker("Style", selection: $isSatellite) {
+                            Text("Standard").tag(false)
+                            Text("Satellite").tag(true)
+                        }
+                        .pickerStyle(.segmented)
+                        
+                        Picker("Dimension", selection: $isGlobe) {
+                            Text("2D").tag(false)
+                            Text("Globe").tag(true)
+                        }
+                        .pickerStyle(.segmented)
+                        .disabled(!isSatellite)
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.top, 24)
+                .presentationDetents([.height(180)])
+                .presentationDragIndicator(.hidden)
+            }
         }
         .task(id: activityKeys) {
             guard case .loaded(let summaries) = dependencies.activities.state else { return }
@@ -47,11 +100,12 @@ struct PassportView: View {
         Map(position: $position) {
             ForEach(passport.highlights) { highlight in
                 MapPolygon(highlight.polygon)
-                    .foregroundStyle(Color.blue.opacity(0.35))
-                    .stroke(.blue, lineWidth: 1)
+                    .foregroundStyle(highlightColor.opacity(0.35))
+                    .stroke(highlightColor, lineWidth: 1)
+                    .mapOverlayLevel(level: .aboveLabels)
             }
         }
-        .mapStyle(.imagery(elevation: .realistic))
+        .mapStyle(activeMapStyle)
     }
 
     @ViewBuilder
