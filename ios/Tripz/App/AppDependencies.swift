@@ -8,6 +8,7 @@ struct AppDependencies {
     let importer: HealthImporter
     let previews: RoutePreviewStore
     let activities: ActivityStore
+    let passport: PassportModel
     
     init(database: AppDatabase) {
         let repository = ActivityRepository(database)
@@ -15,6 +16,7 @@ struct AppDependencies {
         self.importer = HealthImporter(provider: HealthKitWorkoutProvider(), repository: repository)
         self.previews = RoutePreviewStore(repository: repository)
         self.activities = ActivityStore(repository: repository)
+        self.passport = PassportModel(repository: repository)
     }
     
     static func live() throws -> AppDependencies {

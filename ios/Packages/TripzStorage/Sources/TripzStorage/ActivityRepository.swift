@@ -154,6 +154,26 @@ public struct ActivityRepository: Sendable {
         }
     }
     
+    public func sampledRoutes(everyNth step: Int) async throws -> [UUID: [TrackPoint]] {
+        let step = max(step, 1)
+        return try await writer.read { db in
+            let rows = try Row.fetchAll(db, sql: """
+                SELECT activityId, latitude, longitude
+                FROM routePoint
+                WHERE position % ? = 0
+                ORDER BY activityId, position
+                """, arguments: [step])
+            var result: [UUID: [TrackPoint]] = [:]
+            for row in rows {
+                guard let id = UUID(uuidString: row["activityId"]) else {
+                    throw StorageError.invalidRow("route point with a malformed activity id")
+                }
+                result[id, default: []].append(TrackPoint(latitude: row["latitude"], longitude: row["longitude"]))
+            }
+            return result
+        }
+    }
+    
 }
 
 public struct HealthImportState: Equatable, Sendable {

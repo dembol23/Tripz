@@ -17,7 +17,7 @@ struct MainTabView: View {
                 HikesView(dependencies: dependencies)
             }
             Tab("Passport", systemImage: "globe.europe.africa", value: AppTab.passport) {
-                PassportView()
+                PassportView(dependencies: dependencies)
             }
             Tab("Profile", systemImage: "person.crop.circle", value: AppTab.profile) {
                 ProfileView(dependencies: dependencies)

@@ -22,6 +22,13 @@ public struct GeoBounds: Equatable, Sendable {
         maxLongitude = maxLon
     }
     
+    public init(minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double) {
+        self.minLatitude = minLatitude
+        self.maxLatitude = maxLatitude
+        self.minLongitude = minLongitude
+        self.maxLongitude = maxLongitude
+    }
+    
     public var centerLatitude: Double { (minLatitude + maxLatitude) / 2 }
     public var centerLongitude: Double { (minLongitude + maxLongitude) / 2 }
     public var latitudeSpan: Double { maxLatitude - minLatitude }

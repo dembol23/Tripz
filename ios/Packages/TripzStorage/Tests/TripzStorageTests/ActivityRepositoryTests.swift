@@ -232,4 +232,23 @@ struct ActivityRepositoryTests {
         let after = try await updates.next()
         #expect(after?.first?.hasRoute == true)
     }
+    
+    @Test func sampledRoutesKeepEveryNthPointPerActivity() async throws {
+        let (repository, _) = try makeRepository()
+        // Latitudes are position / 4, so 0, 25 and 50 are exact.
+        let long = makeActivity(route: Route(points: (0..<250).map {
+            TrackPoint(latitude: Double($0) / 4, longitude: 0)
+        }))
+        let short = makeActivity(route: route)      // 3 points: only position 0 qualifies
+        let without = makeActivity()
+        try await repository.save(long)
+        try await repository.save(short)
+        try await repository.save(without)
+
+        let sampled = try await repository.sampledRoutes(everyNth: 100)
+
+        #expect(sampled[long.id]?.map(\.latitude) == [0, 25, 50])
+        #expect(sampled[short.id]?.count == 1)
+        #expect(sampled[without.id] == nil)
+    }
 }
