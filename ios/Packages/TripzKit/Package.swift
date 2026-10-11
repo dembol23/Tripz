@@ -8,7 +8,7 @@ let package = Package(
         .library(name: "TripzKit", targets: ["TripzKit"])
     ],
     targets: [
-        .target(name: "TripzKit"),
+        .target(name: "TripzKit", resources: [.process("Resources")]),
         .testTarget(name: "TripzKitTests", dependencies: ["TripzKit"]),
     ]
 )
